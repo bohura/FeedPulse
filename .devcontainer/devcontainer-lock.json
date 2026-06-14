@@ -1,0 +1,9 @@
+{
+  "features": {
+    "ghcr.io/itsmechlark/features/postgresql:1": {
+      "version": "1.9.0",
+      "resolved": "ghcr.io/itsmechlark/features/postgresql@sha256:356d919ede2f7dce3f921b424301f965eeeb63e67840afec26eeb362998f08f9",
+      "integrity": "sha256:356d919ede2f7dce3f921b424301f965eeeb63e67840afec26eeb362998f08f9"
+    }
+  }
+}
