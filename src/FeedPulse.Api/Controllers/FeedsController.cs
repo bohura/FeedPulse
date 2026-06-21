@@ -1,6 +1,7 @@
 using FeedPulse.Api.Contracts.Feeds;
 using FeedPulse.Api.Data;
 using FeedPulse.Api.Entities;
+using FeedPulse.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,11 @@ namespace FeedPulse.Api.Controllers;
 public class FeedsController : ControllerBase
 {
     private readonly AppDbContext appDbContext;
-
-    public FeedsController(AppDbContext appContext)
+    private readonly IFeedSyncService feedSync;
+    public FeedsController(AppDbContext appContext, IFeedSyncService feedSync)
     {
         this.appDbContext = appContext;
+        this.feedSync = feedSync;
     }
 
     [HttpGet]
@@ -83,5 +85,12 @@ public class FeedsController : ControllerBase
         await appDbContext.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/sync")]
+    public async Task<IActionResult> Sync(int id)
+    {
+        var importedCount = await feedSync.SyncAsync(id);
+        return Ok(importedCount);
     }
 }

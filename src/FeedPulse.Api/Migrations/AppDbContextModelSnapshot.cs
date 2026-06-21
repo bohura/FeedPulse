@@ -48,6 +48,60 @@ namespace FeedPulse.Api.Migrations
 
                     b.ToTable("Feeds");
                 });
+
+            modelBuilder.Entity("FeedPulse.Api.Entities.FeedItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("FeedId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Link")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeedId");
+
+                    b.ToTable("FeedItems");
+                });
+
+            modelBuilder.Entity("FeedPulse.Api.Entities.FeedItem", b =>
+                {
+                    b.HasOne("FeedPulse.Api.Entities.Feed", "Feed")
+                        .WithMany("FeedItems")
+                        .HasForeignKey("FeedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Feed");
+                });
+
+            modelBuilder.Entity("FeedPulse.Api.Entities.Feed", b =>
+                {
+                    b.Navigation("FeedItems");
+                });
 #pragma warning restore 612, 618
         }
     }

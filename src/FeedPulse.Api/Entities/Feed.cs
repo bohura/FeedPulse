@@ -12,5 +12,7 @@
 
         public bool IsActive {  get; set; }
 
+        public ICollection<FeedItem> FeedItems { get; set; } = new List<FeedItem>();
+
     }
 }

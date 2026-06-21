@@ -6,16 +6,18 @@
 
         public int FeedId { get; set; }
 
-        public Guid ExternalId { get; set; }
+        public Feed Feed { get; set; } = null!;
 
-        public string Title { get; set; }
+        public string? ExternalId { get; set; }
 
-        public string Link { get; set; }
+        public required string Title { get; set; }
 
-        public string Summary { get; set; }
+        public required string Link { get; set; }
 
-        public DateTimeOffset PublishedAt { get; set; }
+        public string? Summary { get; set; }
 
-        public DateTimeOffset CreateAt { get; set; }
+        public DateTimeOffset? PublishedAt { get; set; }
+
+        public DateTimeOffset CreatedAt { get; set; }= DateTimeOffset.UtcNow;
     }
 }

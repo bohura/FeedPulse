@@ -11,5 +11,6 @@ namespace FeedPulse.Api.Data
 
         }
         public DbSet<Feed> Feeds =>Set<Feed>();
+        public DbSet<FeedItem> FeedItems => Set<FeedItem>();
     }
 }
