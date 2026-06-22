@@ -18,6 +18,6 @@
 
         public DateTimeOffset? PublishedAt { get; set; }
 
-        public DateTimeOffset CreatedAt { get; set; }= DateTimeOffset.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     }
 }
