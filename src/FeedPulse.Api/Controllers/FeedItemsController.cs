@@ -11,41 +11,39 @@ namespace FeedPulse.Api.Controllers
     public class FeedItemsController : ControllerBase
     {
         private readonly AppDbContext appDbContext;
-        private readonly IFeedSyncService feedSync;
-        public FeedItemsController(AppDbContext appDbContext, IFeedSyncService feedSync)
+        public FeedItemsController(AppDbContext appDbContext)
         {
             this.appDbContext = appDbContext;
-            this.feedSync = feedSync;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FeedItem>>> GetAll(int feedId)
         {
-            var feddExists = await appDbContext.Feeds.AnyAsync(feed => feed.Id == feedId);
-            if (!feddExists)
+            var feedExists = await appDbContext.Feeds.AnyAsync(feed => feed.Id == feedId);
+            if (!feedExists)
             {
                 return NotFound();
             }
-            var feedItems = await appDbContext.FeedItems
+            var feedItem = await appDbContext.FeedItems
                 .AsNoTracking()
                 .Where(item => item.FeedId == feedId)
                 .OrderByDescending(item => item.PublishedAt ?? item.CreatedAt)
                 .ThenByDescending(item => item.Id)
                 .ToListAsync();
 
-            return Ok(feedItems);
+            return Ok(feedItem);
         }
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FeedItem>> GetById(int feedId, int id)
         {
-            var feeditems = await appDbContext.FeedItems
+            var feeditem = await appDbContext.FeedItems
                 .AsNoTracking()
                 .SingleOrDefaultAsync(item => item.FeedId == feedId && item.Id == id);
-            if (feeditems == null)
+            if (feeditem == null)
             {
                 return NotFound();
             }
-            return Ok(feeditems);
+            return Ok(feeditem);
         }
 
 

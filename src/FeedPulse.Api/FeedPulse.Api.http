@@ -1,6 +1,27 @@
 @FeedPulse.Api_HostAddress = http://localhost:5281
+@feedId = 1
 
-GET {{FeedPulse.Api_HostAddress}}/weatherforecast/
+### 查看所有 feeds
+GET {{FeedPulse.Api_HostAddress}}/feeds
 Accept: application/json
 
-###
+### 创建一个 feed
+POST {{FeedPulse.Api_HostAddress}}/feeds
+Content-Type: application/json
+
+{
+  "title": "dotnet blog",
+  "url": "https://devblogs.microsoft.com/dotnet/feed/"
+}
+
+### 查看单个 feed
+GET {{FeedPulse.Api_HostAddress}}/feeds/{{feedId}}
+Accept: application/json
+
+### 同步指定 feed
+POST {{FeedPulse.Api_HostAddress}}/feeds/{{feedId}}/sync
+Accept: application/json
+
+### 查看这个 feed 的 items
+GET {{FeedPulse.Api_HostAddress}}/feeds/{{feedId}}/items
+Accept: application/json

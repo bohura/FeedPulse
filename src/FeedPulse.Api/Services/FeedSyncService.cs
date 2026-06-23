@@ -124,6 +124,10 @@ namespace FeedPulse.Api.Services
                         var link = entry.Elements(atom + "link")
                             .Select(x => x.Attribute("href")?.Value?.Trim())
                             .FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+                        if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(link))
+                        {
+                            continue;
+                        }
                         var externalId = entry.Element(atom + "id")?.Value?.Trim() ?? link;
                         var content = entry.Element(atom+"content")?.Value?.Trim();
                         var summary = entry.Element(atom+"summary")?.Value?.Trim() ?? content;

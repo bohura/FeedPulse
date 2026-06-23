@@ -12,5 +12,13 @@ namespace FeedPulse.Api.Data
         }
         public DbSet<Feed> Feeds => Set<Feed>();
         public DbSet<FeedItem> FeedItems => Set<FeedItem>();
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<FeedItem>()
+                .HasIndex(item => new { item.FeedId, item.ExternalId })
+                .IsUnique();
+        }
     }
 }

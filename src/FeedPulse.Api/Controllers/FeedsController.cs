@@ -22,7 +22,11 @@ public class FeedsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Feed>>> GetAll()
     {
-        var feeds = await appDbContext.Feeds.ToListAsync();
+        var feeds = await appDbContext.Feeds
+            .AsNoTracking()
+            .OrderByDescending(feed=>feed.CreatedAt)
+            .ThenByDescending(feed=>feed.Id)
+            .ToListAsync();
         return Ok(feeds);
     }
 

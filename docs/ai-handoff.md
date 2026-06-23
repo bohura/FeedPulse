@@ -77,43 +77,55 @@ Top-level structure currently includes:
 - `CreatedAt`
 
 ### Database Context
-[`AppDbContext.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Data/AppDbContext.cs) exists and exposes:
+[`AppDbContext.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Data/AppDbContext.cs) currently:
 
-- `DbSet<Feed> Feeds`
-- `DbSet<FeedItem> FeedItems`
+- exposes `DbSet<Feed> Feeds`
+- exposes `DbSet<FeedItem> FeedItems`
+- configures a unique index on `FeedItem (FeedId, ExternalId)`
 
 ### API Controllers
-[`FeedsController.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Controllers/FeedsController.cs) currently implements CRUD for feeds:
+[`FeedsController.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Controllers/FeedsController.cs) currently implements CRUD for feeds plus sync:
 
 - `GET /feeds`
 - `GET /feeds/{id}`
 - `POST /feeds`
 - `PUT /feeds/{id}`
 - `DELETE /feeds/{id}`
+- `POST /feeds/{id}/sync`
 
-It uses request DTOs under `Contracts/Feeds`.
+Current details:
 
-[`FeedItemsController.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Controllers/FeedItemsController.cs) now provides read-only item browsing by feed:
+- `GET /feeds` now uses `AsNoTracking()`
+- `GET /feeds` now orders by `CreatedAt` descending, then `Id` descending
+- feed create/update still uses DTOs under `Contracts/Feeds`
+
+[`FeedItemsController.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Controllers/FeedItemsController.cs) provides read-only item browsing by feed:
 
 - `GET /feeds/{feedId}/items`
 - `GET /feeds/{feedId}/items/{id}`
 
-It filters by `feedId`, orders items by `PublishedAt ?? CreatedAt` descending, and uses `AsNoTracking()` for read queries.
+Current details:
+
+- filters by `feedId`
+- orders items by `PublishedAt ?? CreatedAt` descending
+- uses `AsNoTracking()` for read queries
+- no longer injects the sync service
 
 ### Sync Service
-[`FeedSyncService.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Services/FeedSyncService.cs) and [`IFeedSyncService.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Services/IFeedSyncService.cs) are now in place.
+[`FeedSyncService.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Services/FeedSyncService.cs) and [`IFeedSyncService.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Services/IFeedSyncService.cs) are in place.
 
 Current sync behavior:
 
 - `POST /feeds/{id}/sync` is wired through `FeedsController`
 - downloads the feed XML from the stored feed URL
 - parses RSS `<rss>/<channel>/<item>` entries
-- de-duplicates items before insert using `FeedId + ExternalId`
+- parses Atom `<feed>/<entry>` entries and persists them
+- skips entries missing required `title` or `link`
+- de-duplicates before insert using `FeedId + ExternalId`
+- is now backed by a database-level unique index on `FeedId + ExternalId`
 - stores new `FeedItem` rows in PostgreSQL
 - converts `PublishedAt` to UTC before saving, to satisfy PostgreSQL `timestamp with time zone`
 - returns a `FeedSyncResult` with `FeedId`, `FeedTitle`, `FetchedCount`, `AddedCount`, `Success`, and `ErrorMessage`
-
-Atom parsing is present in the service, but the Atom branch is still only counting entries and has not been wired to full persistence yet.
 
 ### Contracts
 [`CreateFeedRequest.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Contracts/Feeds/CreateFeedRequest.cs)
@@ -121,27 +133,42 @@ and [`UpdateFeedRequest.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/F
 exist and are used by the feeds controller.
 
 ### Migrations
-EF Core migrations already exist:
+EF Core migrations currently include:
 
 - `InitialCreate`
 - `AddFeedItems`
+- `AddFeedItemUniqueIndex`
 
-The `FeedItems` table, primary key, foreign key to `Feeds`, and index on `FeedId` have already been generated.
+Current migration state:
+
+- `FeedItems` table exists
+- foreign key to `Feeds` exists
+- unique index on `(FeedId, ExternalId)` has been generated and applied successfully
 
 ### Template / Stray File Note
 There is also a root-level [`AppDbContext.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/AppDbContext.cs) at the repo root containing a template `Class1`.
 It is not the real DbContext and should not be confused with [`src/FeedPulse.Api/Data/AppDbContext.cs`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/Data/AppDbContext.cs).
 
 ### Request File
-[`FeedPulse.Api.http`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/FeedPulse.Api.http) is still the default template file and has not been updated yet.
+[`FeedPulse.Api.http`](C:/Users/Bohura/source/repos/bohura/FeedPulse/src/FeedPulse.Api/FeedPulse.Api.http) has now been updated away from the default template.
+It currently contains practical requests for:
+
+- `GET /feeds`
+- `POST /feeds`
+- `GET /feeds/{id}`
+- `POST /feeds/{id}/sync`
+- `GET /feeds/{id}/items`
 
 ## What Has Already Been Verified
 - The PostgreSQL container workflow works for this project.
-- EF migrations can create the tables successfully.
-- The database now contains `Feeds` and `FeedItems`.
-- The user has already been able to run migration/update workflows successfully from the API project.
+- EF migrations can create and update the tables successfully.
+- The database contains `Feeds` and `FeedItems`.
 - `POST /feeds/{id}/sync` successfully downloads an RSS feed and inserts `FeedItem` rows into the database.
-- Example successful sync result observed in Swagger: `fetchedCount = 20`, `addedCount = 20`, `success = true`.
+- Atom sync works against `https://github.com/dotnet/runtime/releases.atom`.
+- A repeat sync against the same feed was verified to be idempotent.
+- After the duplicate-prevention changes, repeat sync no longer adds duplicate rows.
+- The `AddFeedItemUniqueIndex` migration applied successfully.
+- The updated requests in `FeedPulse.Api.http` were reported working.
 
 ## Important Context From The Conversation
 - The user is new to this exact workflow and needs concrete, step-by-step guidance.
@@ -151,15 +178,6 @@ It is not the real DbContext and should not be confused with [`src/FeedPulse.Api
   - what concept the file is for
   - what command to run next
 - The user explicitly asked to be guided rather than handed a fully finished implementation.
-
-## Recommended Next Step
-Do not jump into background jobs yet.
-
-Best next feature:
-
-1. finish Atom persistence so RSS and Atom behave consistently
-2. verify repeat sync is idempotent and does not duplicate rows
-3. later move the sync logic into a background worker
 
 ## Guidance Style Going Forward
 When continuing this project:
@@ -187,9 +205,39 @@ What this file provides instead is the practical equivalent:
 - next implementation target
 
 ## Recent Milestone
-As of 2026-06-21, the backend has reached a working RSS sync milestone:
+As of 2026-06-23, the backend has reached a more stable feed-sync milestone:
 
 - CRUD for feeds is in place
 - item browsing by feed is in place
 - RSS sync can fetch, parse, de-duplicate, and persist items
-- sync responses now report how many items were fetched and inserted
+- Atom sync can fetch, parse, de-duplicate, and persist items
+- duplicate prevention is now enforced both in code and in the database
+- repeat sync on the same feed has been verified as idempotent
+- the request file now contains practical API calls instead of the default template
+
+## 2026-06-23 Progress Update
+Progress completed in this session:
+
+- added an Atom guard so entries without `title` or `link` are skipped instead of creating invalid `FeedItem` values
+- added a unique index for `FeedItems (FeedId, ExternalId)` in `AppDbContext`
+- generated and applied the `AddFeedItemUniqueIndex` migration
+- verified repeat sync does not insert duplicates
+- updated `FeedPulse.Api.http` with useful requests for feeds, sync, and items
+- updated `GET /feeds` to use `AsNoTracking()` and newest-first ordering
+- simplified `FeedItemsController` by removing the sync-service dependency and cleaning variable names
+
+## Recommended Next Step
+Keep the next step small.
+
+Recommended follow-up:
+
+1. make `GET /feeds/{id}` use `AsNoTracking()` as well, for consistency with the other read endpoints
+2. optionally clean formatting / encoding in `FeedPulse.Api.http` comments if they appear garbled in some editors
+3. after that, choose the next product feature instead of more internal cleanup
+
+Practical feature candidates after the cleanup pass:
+
+- improve feed list/detail responses
+- add pagination for feed items
+- decide how inactive feeds should behave during sync
+- only later move sync into a background worker
