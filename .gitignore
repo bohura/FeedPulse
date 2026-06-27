@@ -34,3 +34,8 @@ appsettings.*.local.json
 *.nupkg
 *.snupkg
 .vscode
+
+# Local project-only folders
+docs/
+.devcontainer/
+dotnet/
