@@ -12,6 +12,8 @@ namespace FeedPulse.Api.Data
         }
         public DbSet<Feed> Feeds => Set<Feed>();
         public DbSet<FeedItem> FeedItems => Set<FeedItem>();
+
+        public DbSet<AiSettings> AiSettings => Set<AiSettings>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
