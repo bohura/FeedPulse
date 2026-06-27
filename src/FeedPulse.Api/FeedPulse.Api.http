@@ -25,3 +25,7 @@ Accept: application/json
 ### 查看这个 feed 的 items
 GET {{FeedPulse.Api_HostAddress}}/feeds/{{feedId}}/items
 Accept: application/json
+
+### Get paged feed items
+GET {{FeedPulse.Api_HostAddress}}/feeds/{{feedId}}/items?page=1&pageSize=20
+Accept: application/json

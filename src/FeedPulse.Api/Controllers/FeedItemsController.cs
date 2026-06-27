@@ -17,21 +17,43 @@ namespace FeedPulse.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FeedItem>>> GetAll(int feedId)
+        public async Task<ActionResult> GetAll(int feedId,int page=1,int pageSize=20)
         {
+            if (page < 1)
+            {
+                page = 1;
+            }
+            if (pageSize < 1)
+            {
+                pageSize = 20;
+            }else if (pageSize > 100)
+            {
+                pageSize = 100;
+            }
             var feedExists = await appDbContext.Feeds.AnyAsync(feed => feed.Id == feedId);
             if (!feedExists)
             {
                 return NotFound();
             }
-            var feedItem = await appDbContext.FeedItems
+            var query = appDbContext.FeedItems
                 .AsNoTracking()
-                .Where(item => item.FeedId == feedId)
+                .Where(item => item.FeedId == feedId);
+
+            var totalCount = await query.CountAsync();
+
+            var feeditems = await query
                 .OrderByDescending(item => item.PublishedAt ?? item.CreatedAt)
                 .ThenByDescending(item => item.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return Ok(feedItem);
+            return Ok(new {
+                page,
+                pageSize,
+                totalCount,
+                items = feeditems
+            });
         }
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FeedItem>> GetById(int feedId, int id)

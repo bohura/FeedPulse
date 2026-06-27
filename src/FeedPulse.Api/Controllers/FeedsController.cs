@@ -33,7 +33,9 @@ public class FeedsController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Feed>> GetById(int id)
     {
-        var feed = await appDbContext.Feeds.FindAsync(id);
+        var feed = await appDbContext.Feeds
+            .AsNoTracking()
+             .SingleOrDefaultAsync(x=>x.Id==id);
         if (feed is null)
         {
             return NotFound();
