@@ -18,6 +18,8 @@
 
         public DateTimeOffset? PublishedAt { get; set; }
 
+        public FeedItemContent? FullContent { get; set; }
+
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     }
 }

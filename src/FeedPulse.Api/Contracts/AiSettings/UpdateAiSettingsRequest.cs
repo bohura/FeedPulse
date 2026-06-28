@@ -13,5 +13,19 @@
         public bool EnableSummaryTranslation { get; set; }
 
         public bool EnableSummaryGeneration { get; set; }
+
+        public string TargetLanguage { get; set; } = string.Empty;
+
+        public int? TitleTranslationProfileId { get; set; }
+
+        public int? SummaryTranslationProfileId { get; set; }
+
+        public int? SummaryGenerationProfileId { get; set; }
+
+        public string TitleTranslationPrompt { get; set; } = string.Empty;
+
+        public string SummaryTranslationPrompt { get; set; } = string.Empty;
+
+        public string SummaryGenerationPrompt { get; set; } = string.Empty;
     }
 }

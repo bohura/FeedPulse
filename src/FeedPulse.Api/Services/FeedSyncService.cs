@@ -26,7 +26,7 @@ namespace FeedPulse.Api.Services
 
             feedsyncResult.FeedId = feed.Id;
             feedsyncResult.FeedTitle = feed.Title;
-
+            XNamespace contentNs = "http://purl.org/rss/1.0/modules/content/";
             using var client = new HttpClient();
             string xml;
             try
@@ -85,7 +85,8 @@ namespace FeedPulse.Api.Services
                             ExternalId = externalId,
                             Title = title,
                             Link = link,
-                            Summary = item.Element("description")?.Value?.Trim(),
+                            Summary = item.Element(contentNs + "encoded")?.Value?.Trim()
+                                ?? item.Element("description")?.Value?.Trim(),
                             PublishedAt = publishedAt,
                             CreatedAt = DateTimeOffset.UtcNow
                         });
@@ -129,8 +130,9 @@ namespace FeedPulse.Api.Services
                             continue;
                         }
                         var externalId = entry.Element(atom + "id")?.Value?.Trim() ?? link;
-                        var content = entry.Element(atom+"content")?.Value?.Trim();
-                        var summary = entry.Element(atom+"summary")?.Value?.Trim() ?? content;
+                        var content = entry.Element(atom + "content")?.Value?.Trim();
+                        var summary = content
+                            ?? entry.Element(atom + "summary")?.Value?.Trim();
 
                         var exists = await appDbContext.FeedItems.AnyAsync(x =>
                             x.FeedId == feed.Id && x.ExternalId == externalId
